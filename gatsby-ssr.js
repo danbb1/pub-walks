@@ -1,4 +1,3 @@
-import './src/styles/global.css';
 /* eslint-disable import/prefer-default-export */
 import wrapWithProvider from './wrap-with-provider';
 
