@@ -4,6 +4,7 @@ import { MapContainer, Marker, Polyline, Rectangle, TileLayer, useMapEvent, Tool
 import { useDispatch, useSelector } from 'react-redux';
 
 import { addMarker } from '../state/slices/routeSlice';
+import { setSearchArea } from '../state/slices/pubSlice';
 
 import Layout from '../components/layout';
 import Seo from '../components/seo';
@@ -18,43 +19,35 @@ const Drop = ({ handleClick }) => {
 };
 
 const IndexPage = () => {
-  // const [markers, setMarkers] = useState<LatLngTuple[] | null>(null);
   const { markers, highestPoint } = useSelector(state => state.route);
+  const { searchArea, pubs } = useSelector(state => state.pubs);
   const [map, setMap] = useState(null);
-  const [searchArea, setSearchArea] = useState(null);
-  const [pubs, setPubs] = useState(null);
-  const [routeBounds, setRouteBounds] = useState(null);
 
   const dispatch = useDispatch();
 
-  const handleClick = (e: LeafletMouseEvent) => {
-    dispatch(addMarker([e.latlng.lat, e.latlng.lng]));
-    const newRouteBounds = routeBounds
-      ? {
-          ...routeBounds,
-        }
-      : {
-          n: null,
-          e: null,
-          s: null,
-          w: null,
-        };
+  const handleClick = (event: LeafletMouseEvent) => {
+    dispatch(addMarker([event.latlng.lat, event.latlng.lng]));
+    const newSearchArea = searchArea
+      ? [[...searchArea[0]], [...searchArea[1]]]
+      : [
+          [null, null],
+          [null, null],
+        ];
+
+    let [[n, w], [s, e]] = newSearchArea;
 
     const distanceTolerance = 0.005;
-    if (!newRouteBounds.w || e.latlng.lng + distanceTolerance > newRouteBounds.w)
-      newRouteBounds.w = e.latlng.lng + distanceTolerance;
-    if (!newRouteBounds.e || e.latlng.lng - distanceTolerance < newRouteBounds.e)
-      newRouteBounds.e = e.latlng.lng - distanceTolerance;
-    if (!newRouteBounds.n || e.latlng.lat + distanceTolerance > newRouteBounds.n)
-      newRouteBounds.n = e.latlng.lat + distanceTolerance;
-    if (!newRouteBounds.s || e.latlng.lat - distanceTolerance < newRouteBounds.s)
-      newRouteBounds.s = e.latlng.lat - distanceTolerance;
+    if (!w || event.latlng.lng + distanceTolerance > w) w = event.latlng.lng + distanceTolerance;
+    if (!e || event.latlng.lng - distanceTolerance < e) e = event.latlng.lng - distanceTolerance;
+    if (!n || event.latlng.lat + distanceTolerance > n) n = event.latlng.lat + distanceTolerance;
+    if (!s || event.latlng.lat - distanceTolerance < s) s = event.latlng.lat - distanceTolerance;
 
-    setRouteBounds(newRouteBounds);
-    setSearchArea([
-      [newRouteBounds.n, newRouteBounds.w],
-      [newRouteBounds.s, newRouteBounds.e],
-    ]);
+    dispatch(
+      setSearchArea([
+        [n, w],
+        [s, e],
+      ]),
+    );
   };
 
   return (
@@ -92,14 +85,7 @@ const IndexPage = () => {
           ))}
         <Drop handleClick={handleClick} />
       </MapContainer>
-      <Menu
-        markers={markers}
-        setSearchArea={setSearchArea}
-        setPubs={setPubs}
-        routeBounds={routeBounds}
-        setRouteBounds={setRouteBounds}
-        map={map}
-      />
+      <Menu map={map} />
     </Layout>
   );
 };

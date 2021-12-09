@@ -13,6 +13,8 @@ import {
   resetRoute,
 } from '../state/slices/routeSlice';
 
+import { setSearchArea, resetPubs, getPubs } from '../state/slices/pubSlice';
+
 import Button from './button';
 
 const getCentrePoint = (x: number, y: number, z: number): LatLngExpression => {
@@ -23,15 +25,7 @@ const getCentrePoint = (x: number, y: number, z: number): LatLngExpression => {
   return [(centreLat * 180) / Math.PI, (centreLong * 180) / Math.PI];
 };
 
-const Menu = ({
-  map,
-  setSearchArea,
-  setPubs,
-  routeBounds,
-  setRouteBounds,
-}: {
-  setMarkers: React.Dispatch<React.SetStateAction<LatLngTuple[]>>;
-}) => {
+const Menu = ({ map }) => {
   const [viewMenu, setViewMenu] = useState<boolean>(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
@@ -83,11 +77,12 @@ const Menu = ({
     y /= points.length;
     z /= points.length;
 
-    setRouteBounds(newRouteBounds);
-    setSearchArea([
-      [newRouteBounds.n, newRouteBounds.w],
-      [newRouteBounds.s, newRouteBounds.e],
-    ]);
+    dispatch(
+      setSearchArea([
+        [newRouteBounds.n, newRouteBounds.w],
+        [newRouteBounds.s, newRouteBounds.e],
+      ]),
+    );
 
     const newCentrePoint = getCentrePoint(x, y, z);
 
@@ -121,19 +116,10 @@ const Menu = ({
     }
   };
 
-  const getPubs = async () => {
-    if (!routeBounds) return;
-    const result = await axios.post('/.netlify/functions/get-pubs', routeBounds);
-
-    if (result.data.length > 0) {
-      setPubs(result.data);
-    }
-  };
-
   return (
     <div>
-      <div style={{ zIndex: 2000 }} className="fixed top-0 right-0">
-        <Button label="View Menu" onClick={() => setViewMenu(!viewMenu)} />
+      <div style={{ zIndex: 2000 }} className="fixed top-4 right-4">
+        <Button label={viewMenu ? 'Close' : 'View Menu'} onClick={() => setViewMenu(!viewMenu)} />
       </div>
 
       {viewMenu && (
@@ -145,9 +131,7 @@ const Menu = ({
             label="Clear"
             onClick={() => {
               dispatch(resetRoute());
-              setPubs(null);
-              setSearchArea(null);
-              setRouteBounds(null);
+              dispatch(resetPubs());
             }}
             className="mb-2"
           />
@@ -163,7 +147,7 @@ const Menu = ({
             label="Close Path"
             onClick={() => dispatch(addMarker(markers[0]))}
           />
-          <Button label="See Pubs" onClick={getPubs} />
+          <Button label="See Pubs" onClick={() => dispatch(getPubs())} />
           <Button label="Get Highest Point" onClick={() => dispatch(getHighestPoint(markers))} />
           <form onSubmit={handleUpload} className="flex flex-col items-center mt-auto">
             <input className="mb-2" type="file" name="file" onChange={handleChange} />
