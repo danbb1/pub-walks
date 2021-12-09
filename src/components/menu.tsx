@@ -1,11 +1,26 @@
-import React, { useState, ChangeEvent, useRef } from 'react';
-import axios from 'axios';
-
+import React, { useState, ChangeEvent } from 'react';
+import axios, { AxiosResponse } from 'axios';
+import { LatLngExpression, LatLngTuple } from 'leaflet';
+import { FeatureCollection } from 'geojson';
 import Button from './button';
 
-const Menu = React.forwardRef((props, ref) => {
-  const { setMarkers, setHighestPoint, markers } = props;
+const getCentrePoint = (x: number, y: number, z: number): LatLngExpression => {
+  const centreLong = Math.atan2(y, x);
+  const centreSqrt = Math.sqrt(x * x + y * y);
+  const centreLat = Math.atan2(z, centreSqrt);
 
+  return [(centreLat * 180) / Math.PI, (centreLong * 180) / Math.PI];
+};
+
+const Menu = ({
+  setMarkers,
+  setHighestPoint,
+  markers,
+}: {
+  markers: LatLngTuple[];
+  setMarkers: React.Dispatch<React.SetStateAction<LatLngTuple[]>>;
+  setHighestPoint: React.Dispatch<React.SetStateAction<LatLngTuple[]>>;
+}) => {
   const [viewMenu, setViewMenu] = useState<boolean>(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
@@ -15,15 +30,17 @@ const Menu = React.forwardRef((props, ref) => {
     setSelectedFile(e.target.files[0]);
   };
 
-  const handleUpload = async (e: Event) => {
-    e.preventDefault();
+  const handleUpload = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!selectedFile || selectedFile.type !== 'application/gpx+xml') return alert('Must be a gpx file');
 
     const formData = new FormData();
     formData.append('file', selectedFile, selectedFile.name);
 
-    const result = await axios.post('/.netlify/functions/handle-file', formData);
+    const result: AxiosResponse<FeatureCollection, PromiseRejectedResult> = await axios.post(
+      '/.netlify/functions/handle-file',
+      formData,
+    );
 
     console.log(result.data);
     let x = 0;
@@ -47,16 +64,12 @@ const Menu = React.forwardRef((props, ref) => {
     y /= points.length;
     z /= points.length;
 
-    const centreLong = Math.atan2(y, x);
-    const centreSqrt = Math.sqrt(x * x + y * y);
-    const centreLat = Math.atan2(z, centreSqrt);
-
-    const newCentrePoint = [(centreLat * 180) / Math.PI, (centreLong * 180) / Math.PI];
+    const newCentrePoint = getCentrePoint(x, y, z);
 
     console.log(newCentrePoint);
   };
   return (
-    <div ref={ref}>
+    <div>
       <div style={{ zIndex: 2000 }} className="fixed top-0 right-0">
         <Button label="View Menu" onClick={() => setViewMenu(!viewMenu)} />
       </div>
@@ -88,6 +101,6 @@ const Menu = React.forwardRef((props, ref) => {
       )}
     </div>
   );
-});
+};
 
 export default Menu;

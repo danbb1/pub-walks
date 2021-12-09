@@ -43,7 +43,7 @@ const IndexPage = () => {
         {markers && <Polyline positions={markers} />}
         <Drop handleClick={handleClick} />
       </MapContainer>
-      <Menu ref={ref} setHighestPoint={setHighestPoint} setMarkers={setMarkers} markers={markers} />
+      <Menu setHighestPoint={setHighestPoint} setMarkers={setMarkers} markers={markers} />
     </Layout>
   );
 };

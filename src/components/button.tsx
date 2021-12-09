@@ -1,3 +1,4 @@
+/* eslint-disable react/require-default-props */
 import React, { MouseEventHandler } from 'react';
 
 const Button = ({
@@ -8,7 +9,7 @@ const Button = ({
 }: {
   label: string;
   submit?: boolean;
-  onClick: MouseEventHandler<HTMLButtonElement>;
+  onClick?: MouseEventHandler<HTMLButtonElement>;
   className?: string;
 }) => (
   <button
