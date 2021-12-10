@@ -15,6 +15,8 @@ import {
 
 import { setSearchArea, resetPubs, getPubs } from '../state/slices/pubSlice';
 
+import { routeSelector } from '../state/store';
+
 import Button from './button';
 
 const getCentrePoint = (x: number, y: number, z: number): LatLngExpression => {
@@ -31,7 +33,7 @@ const Menu = ({ map }) => {
 
   const dispatch = useDispatch();
 
-  const { markers } = useSelector(state => state.route);
+  const { markers } = useSelector(routeSelector);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
@@ -39,7 +41,7 @@ const Menu = ({ map }) => {
     setSelectedFile(e.target.files[0]);
   };
 
-  const handleRoute = coordinates => {
+  const handleRoute = (coordinates: [...LatLngTuple, number][]) => {
     let x = 0;
     let y = 0;
     let z = 0;
@@ -145,10 +147,10 @@ const Menu = ({ map }) => {
           <Button
             className="mb-2 whitespace-nowrap"
             label="Close Path"
-            onClick={() => dispatch(addMarker(markers[0]))}
+            onClick={() => (markers ? dispatch(addMarker(markers[0])) : null)}
           />
           <Button label="See Pubs" onClick={() => dispatch(getPubs())} />
-          <Button label="Get Highest Point" onClick={() => dispatch(getHighestPoint(markers))} />
+          <Button label="Get Highest Point" onClick={() => (markers ? dispatch(getHighestPoint(markers)) : null)} />
           <form onSubmit={handleUpload} className="flex flex-col items-center mt-auto">
             <input className="mb-2" type="file" name="file" onChange={handleChange} />
             <Button submit label="Upload" />

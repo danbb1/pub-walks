@@ -1,6 +1,11 @@
 import { configureStore } from '@reduxjs/toolkit';
-import routeReducer from './slices/routeSlice';
-import pubsReducer from './slices/pubSlice';
+import routeReducer, { IRoutesInitialState } from './slices/routeSlice';
+import pubsReducer, { IPubsInitialState } from './slices/pubSlice';
+
+type RootState = {
+  route: IRoutesInitialState;
+  pubs: IPubsInitialState;
+};
 
 export default configureStore({
   reducer: {
@@ -14,3 +19,7 @@ export default configureStore({
       },
     }),
 });
+
+export const routeSelector = (state: RootState) => state.route;
+
+export const pubsSelector = (state: RootState) => state.pubs;

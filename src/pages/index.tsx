@@ -1,16 +1,19 @@
+/* eslint-disable no-underscore-dangle */
 import React, { useState } from 'react';
-import { LeafletMouseEvent, LatLngExpression, LatLngTuple } from 'leaflet';
+import { LeafletMouseEvent, Map } from 'leaflet';
 import { MapContainer, Marker, Polyline, Rectangle, TileLayer, useMapEvent, Tooltip } from 'react-leaflet';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { addMarker } from '../state/slices/routeSlice';
 import { setSearchArea } from '../state/slices/pubSlice';
 
+import { pubsSelector, routeSelector } from '../state/store';
+
 import Layout from '../components/layout';
 import Seo from '../components/seo';
 import Menu from '../components/menu';
 
-const Drop = ({ handleClick }) => {
+const Drop = ({ handleClick }: { handleClick: (event: LeafletMouseEvent) => void }) => {
   useMapEvent('click', e => {
     handleClick(e);
   });
@@ -19,9 +22,9 @@ const Drop = ({ handleClick }) => {
 };
 
 const IndexPage = () => {
-  const { markers, highestPoint } = useSelector(state => state.route);
-  const { searchArea, pubs } = useSelector(state => state.pubs);
-  const [map, setMap] = useState(null);
+  const { markers, highestPoint } = useSelector(routeSelector);
+  const { searchArea, pubs } = useSelector(pubsSelector);
+  const [map, setMap] = useState<Map | null>(null);
 
   const dispatch = useDispatch();
 
@@ -72,17 +75,19 @@ const IndexPage = () => {
         {markers && <Polyline positions={markers} />}
         {searchArea && <Rectangle bounds={searchArea} />}
         {pubs &&
-          pubs.map(pub => (
-            <Marker key={pub._id} position={[pub.lat, pub.long]}>
-              <Tooltip>
-                <ul>
-                  <li>{pub.name}</li>
-                  <li>{pub.address}</li>
-                  <li>{pub.postcode}</li>
-                </ul>
-              </Tooltip>
-            </Marker>
-          ))}
+          pubs.map(pub =>
+            pub.lat && pub.long ? (
+              <Marker key={pub._id} position={[pub.lat, pub.long]}>
+                <Tooltip>
+                  <ul>
+                    <li>{pub.name}</li>
+                    <li>{pub.address}</li>
+                    <li>{pub.postcode}</li>
+                  </ul>
+                </Tooltip>
+              </Marker>
+            ) : null,
+          )}
         <Drop handleClick={handleClick} />
       </MapContainer>
       <Menu map={map} />

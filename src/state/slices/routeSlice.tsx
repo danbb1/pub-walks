@@ -1,18 +1,20 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { LatLngExpression, LatLngTuple } from 'leaflet';
+import { LatLngTuple } from 'leaflet';
 import axios from 'axios';
 
-type InitialState = {
+type HighestPoint = null | [...LatLngTuple, number];
+
+export type IRoutesInitialState = {
   markers: null | LatLngTuple[];
-  highestPoint: null | LatLngExpression;
+  highestPoint: HighestPoint;
 };
 
 const initialState = {
   markers: null,
   highestPoint: null,
-} as InitialState;
+} as IRoutesInitialState;
 
-export const getHighestPoint = createAsyncThunk('route/getHighestPoint', async route => {
+export const getHighestPoint = createAsyncThunk('route/getHighestPoint', async (route: LatLngTuple[]) => {
   const response = await axios.post(
     'https://api.open-elevation.com/api/v1/lookup',
     { locations: route.map(location => ({ latitude: location[0], longitude: location[1] })) },
@@ -34,7 +36,7 @@ export const routeSlice = createSlice({
       }
     },
     removeLastMarker(state) {
-      if (!state.markers || state.markers.length === 0) return
+      if (!state.markers || state.markers.length === 0) return;
 
       state.markers.pop();
     },
@@ -51,16 +53,13 @@ export const routeSlice = createSlice({
   },
   extraReducers: builder => {
     builder.addCase(getHighestPoint.fulfilled, (state, action) => {
-      let newHighestPoint = null;
+      let newHighestPoint: HighestPoint = null;
       let highestElevation = 0;
 
-      console.log(action.payload.results);
-
-      action.payload.results.forEach(coord => {
-        console.log('Highest', highestElevation, 'current', coord.elevation);
+      action.payload.results.forEach((coord: { latitude: number; longitude: number; elevation: number }) => {
         if (highestElevation < coord.elevation) {
           highestElevation = coord.elevation;
-          newHighestPoint = [...Object.values(coord)];
+          newHighestPoint = [...Object.values(coord)] as HighestPoint;
         }
       });
 
