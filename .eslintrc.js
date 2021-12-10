@@ -25,7 +25,7 @@ module.exports = {
     'react/jsx-filename-extension': [1, { extensions: ['.js', '.jsx', '.tsx', '.ts'] }],
     'prettier/prettier': 'error',
     'react/prop-types': 'off',
-    'react/default-props': 'off',
+    'react/require-default-props': 'off',
     '@typescript-eslint/ban-ts-ignore': 'off',
     'no-param-reassign': ['error', {
       props: true,

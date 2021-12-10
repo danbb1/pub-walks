@@ -5,6 +5,8 @@ import { LatLngTuple } from 'leaflet';
 const initialState = {
   pubs: null,
   searchArea: null,
+  addingPub: false,
+  newPubMarker: null,
 } as IPubsInitialState;
 
 type Pub = {
@@ -22,6 +24,8 @@ type SearchArea = LatLngTuple[];
 export type IPubsInitialState = {
   pubs: Pub[] | null;
   searchArea: SearchArea | null;
+  addingPub: boolean;
+  newPubMarker: LatLngTuple | null;
 };
 
 export const getPubs = createAsyncThunk('pubs/getPubs', async (payload, { getState }) => {
@@ -49,6 +53,12 @@ export const pubsSlice = createSlice({
       state.searchArea = null;
       state.pubs = null;
     },
+    setAddingPub(state) {
+      state.addingPub = !state.addingPub;
+    },
+    setNewPubMarker(state, action) {
+      state.newPubMarker = action.payload;
+    },
   },
   extraReducers: builder => {
     builder.addCase(getPubs.fulfilled, (state, action) => {
@@ -57,6 +67,6 @@ export const pubsSlice = createSlice({
   },
 });
 
-export const { setSearchArea, resetPubs } = pubsSlice.actions;
+export const { setSearchArea, resetPubs, setAddingPub, setNewPubMarker } = pubsSlice.actions;
 
 export default pubsSlice.reducer;

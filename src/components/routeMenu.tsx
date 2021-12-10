@@ -1,4 +1,4 @@
-import React, { useState, ChangeEvent, SetStateAction } from 'react';
+import React, { useState, ChangeEvent } from 'react';
 
 import axios, { AxiosResponse } from 'axios';
 import { LatLngExpression, LatLngTuple, Map } from 'leaflet';
@@ -14,7 +14,7 @@ import {
   resetRoute,
 } from '../state/slices/routeSlice';
 
-import { setSearchArea, resetPubs, getPubs } from '../state/slices/pubSlice';
+import { setSearchArea, resetPubs, getPubs, setAddingPub } from '../state/slices/pubSlice';
 
 import { routeSelector } from '../state/store';
 
@@ -32,13 +32,7 @@ const getCentrePoint = (x: number, y: number, z: number): LatLngExpression => {
   return [(centreLat * 180) / Math.PI, (centreLong * 180) / Math.PI];
 };
 
-const RouteMenu = ({
-  map,
-  setViewPubForm,
-}: {
-  map: Map | null;
-  setViewPubForm: React.Dispatch<SetStateAction<boolean>>;
-}) => {
+const RouteMenu = ({ map }: { map: Map | null }) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const dispatch = useDispatch();
@@ -163,7 +157,7 @@ const RouteMenu = ({
         onClick={() => (markers ? dispatch(getHighestPoint(markers)) : null)}
       />
       <span>Missing pub? Add it!</span>
-      <Button label="Add Pub" onClick={() => setViewPubForm(true)} />
+      <Button label="Add Pub" onClick={() => dispatch(setAddingPub())} />
       <form onSubmit={handleUpload} className="flex flex-col items-center mt-auto">
         <input className="mb-2" type="file" name="file" onChange={handleChange} />
         <Button submit label="Upload" />
