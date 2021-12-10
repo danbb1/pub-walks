@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 const mongoose = require('mongoose');
 
 const pubSchema = new mongoose.Schema({
@@ -14,6 +15,12 @@ const Pub = mongoose.models.Pub || mongoose.model('Pub', pubSchema);
 exports.handler = async ({ body, httpMethod }) => {
   if (httpMethod !== 'POST') {
     return { statusCode: 405 };
+  }
+
+  if (!body) {
+    return {
+      statusCode: 404,
+    };
   }
   const url = 'mongodb://127.0.0.1:27017/pubs';
 
