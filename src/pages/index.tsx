@@ -86,7 +86,7 @@ const IndexPage = () => {
             <Tooltip>Highest Point: {Math.round(highestPoint[2])}m</Tooltip>
           </HighestPointMarker>
         )}
-        {newPubMarker && (
+        {addingPub && newPubMarker && (
           <NewPubMarker position={newPubMarker}>
             <Tooltip>TEST</Tooltip>
           </NewPubMarker>

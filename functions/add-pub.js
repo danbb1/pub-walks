@@ -15,22 +15,19 @@ exports.handler = async ({ body, httpMethod }) => {
   }
   const url = 'mongodb://127.0.0.1:27017/pubs';
 
-  const bounds = JSON.parse(body);
+  const newPub = new Pub(JSON.parse(body));
 
   try {
     await mongoose.connect(url);
     console.log('successfully connected');
 
-    const response = await Pub.find({
-      lat: { $gte: bounds.s, $lte: bounds.n },
-      long: { $gte: bounds.e, $lte: bounds.w },
-    });
+    await newPub.save();
 
     mongoose.disconnect();
 
     return {
       statusCode: 200,
-      body: JSON.stringify(response),
+      body: 'Success',
     };
   } catch (err) {
     console.log(err.message);

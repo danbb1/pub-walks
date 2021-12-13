@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 const mongoose = require('mongoose');
 
-const Pub = require('./models/Pub');
+const Route = require('./models/Route');
 
 exports.handler = async ({ body, httpMethod }) => {
   if (httpMethod !== 'POST') {
@@ -15,22 +15,26 @@ exports.handler = async ({ body, httpMethod }) => {
   }
   const url = 'mongodb://127.0.0.1:27017/pubs';
 
-  const bounds = JSON.parse(body);
+  const markers = JSON.parse(body).map(coord => ({
+    lat: coord[0],
+    long: coord[1],
+  }));
+
+  const newRoute = new Route({ markers });
+
+  console.log(newRoute);
 
   try {
     await mongoose.connect(url);
     console.log('successfully connected');
 
-    const response = await Pub.find({
-      lat: { $gte: bounds.s, $lte: bounds.n },
-      long: { $gte: bounds.e, $lte: bounds.w },
-    });
+    // await newRoute.save();
 
     mongoose.disconnect();
 
     return {
       statusCode: 200,
-      body: JSON.stringify(response),
+      body: 'Success',
     };
   } catch (err) {
     console.log(err.message);

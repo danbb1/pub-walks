@@ -1,5 +1,4 @@
 import React, { useState, ChangeEvent } from 'react';
-
 import axios, { AxiosResponse } from 'axios';
 import { LatLngExpression, LatLngTuple, Map } from 'leaflet';
 import { FeatureCollection } from 'geojson';
@@ -19,6 +18,7 @@ import { setSearchArea, resetPubs, getPubs, setAddingPub } from '../state/slices
 import { routeSelector } from '../state/store';
 
 import Button from './button';
+import { setMenu } from '../state/slices/menuSlice';
 
 class DBError {
   constructor(public status: number, public message: string) {}
@@ -32,7 +32,7 @@ const getCentrePoint = (x: number, y: number, z: number): LatLngExpression => {
   return [(centreLat * 180) / Math.PI, (centreLong * 180) / Math.PI];
 };
 
-const RouteMenu = ({ map }: { map: Map | null }) => {
+const MainMenu = ({ map }: { map: Map | null }) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const dispatch = useDispatch();
@@ -128,6 +128,15 @@ const RouteMenu = ({ map }: { map: Map | null }) => {
 
     return null;
   };
+
+  const handleSave = async () => {
+    try {
+      await axios.post('/.netlify/functions/add-route', markers);
+    } catch (err) {
+      console.log(err.message);
+    }
+  };
+
   return (
     <>
       <Button
@@ -150,6 +159,7 @@ const RouteMenu = ({ map }: { map: Map | null }) => {
         label="Close Path"
         onClick={() => (markers ? dispatch(addMarker(markers[0])) : null)}
       />
+      <Button label="Save Route" className="mb-2" onClick={handleSave} />
       <Button className="mb-2" label="See Pubs" onClick={() => dispatch(getPubs())} />
       <Button
         className="mb-4"
@@ -157,7 +167,14 @@ const RouteMenu = ({ map }: { map: Map | null }) => {
         onClick={() => (markers ? dispatch(getHighestPoint(markers)) : null)}
       />
       <span>Missing pub? Add it!</span>
-      <Button label="Add Pub" onClick={() => dispatch(setAddingPub())} />
+      <Button
+        label="Add Pub"
+        onClick={() => {
+          dispatch(setAddingPub());
+          dispatch(setMenu('PUB'));
+        }}
+      />
+      <Button label="Add Route" onClick={() => dispatch(setMenu('ROUTE'))} />
       <form onSubmit={handleUpload} className="flex flex-col items-center mt-auto">
         <input className="mb-2" type="file" name="file" onChange={handleChange} />
         <Button submit label="Upload" />
@@ -166,4 +183,4 @@ const RouteMenu = ({ map }: { map: Map | null }) => {
   );
 };
 
-export default RouteMenu;
+export default MainMenu;
