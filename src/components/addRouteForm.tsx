@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useState, useEffect, ChangeEvent } from 'react';
+import axios, { AxiosResponse } from 'axios';
+import { FeatureCollection } from 'geojson';
 import { Formik, Form } from 'formik';
 import * as Yup from 'yup';
 import { useDispatch, useSelector } from 'react-redux';
+import { LatLngTuple, Map } from 'leaflet';
 
 import Button from './button';
 import InputGroup from './inputGroup';
@@ -10,14 +12,103 @@ import InputGroup from './inputGroup';
 import { routeSelector } from '../state/store';
 import { setMenu } from '../state/slices/menuSlice';
 
-const AddRouteForm = () => {
+import { resetRoute, setRoute, addMarker, removeLastMarker } from '../state/slices/routeSlice';
+import { setSearchArea } from '../state/slices/pubSlice';
+
+import handleRoute from '../utils/handleRoute';
+
+class DBError {
+  constructor(public status: number, public message: string) {}
+}
+
+const RouteEditor = ({ map }: { map: Map | null }) => {
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+  const dispatch = useDispatch();
+
+  const { markers } = useSelector(routeSelector);
+
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    if (!e.target.files) return;
+    setSelectedFile(e.target.files[0]);
+  };
+
+  const handleUpload = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!selectedFile || selectedFile.type !== 'application/gpx+xml') return alert('Must be a gpx file');
+
+    try {
+      const formData = new FormData();
+      formData.append('file', selectedFile, selectedFile.name);
+
+      const result: AxiosResponse<FeatureCollection, PromiseRejectedResult> = await axios.post(
+        '/.netlify/functions/handle-file',
+        formData,
+      );
+
+      if (result.data.features[0].geometry.type === 'LineString') {
+        console.log(result);
+        const { points, centrePoint, searchArea } = handleRoute(
+          result.data.features[0].geometry.coordinates as [...LatLngTuple, number][],
+        );
+        dispatch(setRoute(points));
+        dispatch(setSearchArea(searchArea));
+        if (map && centrePoint) map.flyTo(centrePoint);
+
+        return null;
+      }
+
+      return null;
+    } catch (err) {
+      if (err instanceof DBError) {
+        console.log(err.message);
+        return null;
+      }
+    }
+
+    return null;
+  };
+
+  return (
+    <>
+      <span className="font-bold mb-2">Draw a Route or Upload a GPX File</span>
+      <div className="flex space-evenly items-center mb-2">
+        <Button
+          label="Clear"
+          onClick={() => {
+            dispatch(resetRoute());
+          }}
+          className="mr-2"
+        />
+        <Button
+          className="mr-2"
+          label="Undo"
+          onClick={() => {
+            dispatch(removeLastMarker());
+          }}
+        />
+        <Button
+          className="whitespace-nowrap"
+          label="Close Path"
+          onClick={() => (markers ? dispatch(addMarker(markers[0])) : null)}
+        />
+      </div>
+      <form onSubmit={handleUpload} className="flex">
+        <input className="mb-2 w-60" type="file" name="file" onChange={handleChange} />
+        <Button submit label="Upload" />
+      </form>
+    </>
+  );
+};
+
+const AddRouteForm = ({ map }: { map: Map | null }) => {
   const [routeError, setRouteError] = useState<boolean>(false);
   const [notification, setNotification] = useState<string | null>(null);
   const dispatch = useDispatch();
   const initialValues = {
     name: '',
-    address: '',
-    postcode: '',
+    description: '',
   };
   const schema = {
     name: Yup.string().required('Required').max(150, 'Max length 150 characters'),
@@ -32,30 +123,39 @@ const AddRouteForm = () => {
   return (
     <>
       {!notification ? (
-        <Formik
-          initialValues={initialValues}
-          validationSchema={Yup.object(schema)}
-          onSubmit={async values => {
-            if (!markers) {
-              setRouteError(true);
-            } else {
-              const newValues = { ...values, markers };
-              try {
-                await axios.post('/.netlify/functions/add-route', newValues);
-                setNotification('Route added succesfully');
-              } catch (err) {
-                setNotification('Oops, something went wrong.');
+        <>
+          <RouteEditor map={map} />
+          <Formik
+            initialValues={initialValues}
+            validationSchema={Yup.object(schema)}
+            onSubmit={async values => {
+              if (!markers) {
+                setRouteError(true);
+              } else {
+                const newValues = { ...values, markers };
+                try {
+                  await axios.post('/.netlify/functions/add-route', newValues);
+                  setNotification('Route added succesfully');
+                } catch (err) {
+                  setNotification('Oops, something went wrong.');
+                }
               }
-            }
-          }}
-        >
-          <Form>
-            <InputGroup name="name" type="text" label="Name" />
-            <InputGroup name="description" type="text" as="textarea" label="Description" />
-            {routeError && <p className="text-red-500">Required</p>}
-            <Button label="Add Pub" submit />
-          </Form>
-        </Formik>
+            }}
+          >
+            <Form className="w-full">
+              <InputGroup name="name" type="text" label="Name" placeholder="Enter a name for the route" />
+              <InputGroup
+                name="description"
+                type="text"
+                as="textarea"
+                label="Description"
+                placeholder="Enter a description of the route"
+              />
+              {routeError && <p className="text-red-500">A Route is Required</p>}
+              <Button label="Save Route" submit />
+            </Form>
+          </Formik>
+        </>
       ) : (
         <p>{notification}</p>
       )}

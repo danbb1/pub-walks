@@ -4,14 +4,28 @@ import axios from 'axios';
 
 type HighestPoint = null | [...LatLngTuple, number];
 
+export type Route = {
+  name: string;
+  description: string;
+  likes: number;
+  comments: string[];
+  markers: {
+    lat: number;
+    long: number;
+  }[];
+  _id: string;
+};
+
 export type IRoutesInitialState = {
   markers: null | LatLngTuple[];
   highestPoint: HighestPoint;
+  recentRoutes: Route[] | null;
 };
 
 const initialState = {
   markers: null,
   highestPoint: null,
+  recentRoutes: null,
 } as IRoutesInitialState;
 
 export const getHighestPoint = createAsyncThunk('route/getHighestPoint', async (route: LatLngTuple[]) => {
@@ -22,6 +36,12 @@ export const getHighestPoint = createAsyncThunk('route/getHighestPoint', async (
   );
 
   return response.data;
+});
+
+export const getRecentRoutes = createAsyncThunk('route/getRecentRoutes', async () => {
+  const result = await axios.post('/.netlify/functions/get-recent-routes');
+
+  return result.data;
 });
 
 export const routeSlice = createSlice({
@@ -64,6 +84,9 @@ export const routeSlice = createSlice({
       });
 
       state.highestPoint = newHighestPoint;
+    });
+    builder.addCase(getRecentRoutes.fulfilled, (state, action) => {
+      state.recentRoutes = action.payload;
     });
   },
 });

@@ -12,11 +12,11 @@ type InputProps = {
 const InputGroup = ({ name, type, label, placeholder, as }: InputProps) => {
   return (
     <div className="block w-full mb-2">
-      <label className="font-bold" htmlFor={name}>
+      <label className="font-bold block w-full" htmlFor={name}>
         {label}
       </label>
       <Field
-        className="p-2"
+        className={`p-2 block w-full rounded-md ${as === 'textarea' ? 'resize-none h-48' : ''}`}
         name={name}
         id={name}
         type={type}

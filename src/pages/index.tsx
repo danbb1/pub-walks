@@ -7,7 +7,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { addMarker } from '../state/slices/routeSlice';
 import { setSearchArea, setNewPubMarker } from '../state/slices/pubSlice';
 
-import { pubsSelector, routeSelector } from '../state/store';
+import { menuSelector, pubsSelector, routeSelector } from '../state/store';
 
 import Layout from '../components/layout';
 import Seo from '../components/seo';
@@ -24,14 +24,15 @@ const Drop = ({ handleClick }: { handleClick: (event: LeafletMouseEvent) => void
 
 const IndexPage = () => {
   const { markers, highestPoint } = useSelector(routeSelector);
-  const { searchArea, pubs, addingPub, newPubMarker } = useSelector(pubsSelector);
+  const { searchArea, pubs, newPubMarker } = useSelector(pubsSelector);
   const [map, setMap] = useState<Map | null>(null);
+
+  const menu = useSelector(menuSelector);
 
   const dispatch = useDispatch();
 
   const handleClick = (event: LeafletMouseEvent) => {
-    if (addingPub) {
-      console.log('FORM OPEN');
+    if (menu === 'PUB') {
       dispatch(setNewPubMarker([event.latlng.lat, event.latlng.lng]));
     } else {
       dispatch(addMarker([event.latlng.lat, event.latlng.lng]));
@@ -69,7 +70,7 @@ const IndexPage = () => {
         scrollWheelZoom={false}
         whenCreated={mapInstance => setMap(mapInstance)}
       >
-        {addingPub && (
+        {menu === 'PUB' && (
           <span
             style={{ zIndex: 2000 }}
             className="fixed top-0 left-1/2 transform -translate-x-1/2 text-red-500 font-bold text-xl"
@@ -86,7 +87,7 @@ const IndexPage = () => {
             <Tooltip>Highest Point: {Math.round(highestPoint[2])}m</Tooltip>
           </HighestPointMarker>
         )}
-        {addingPub && newPubMarker && (
+        {menu === 'PUB' && newPubMarker && (
           <NewPubMarker position={newPubMarker}>
             <Tooltip>TEST</Tooltip>
           </NewPubMarker>

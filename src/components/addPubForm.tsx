@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import Button from './button';
 import InputGroup from './inputGroup';
-import { setAddingPub, setNewPubMarker } from '../state/slices/pubSlice';
+import { setNewPubMarker } from '../state/slices/pubSlice';
 import { pubsSelector } from '../state/store';
 import { setMenu } from '../state/slices/menuSlice';
 
@@ -71,7 +71,6 @@ const AddPubForm = () => {
       )}
       <Button
         onClick={() => {
-          dispatch(setAddingPub());
           dispatch(setNewPubMarker(null));
           setNotification(null);
           dispatch(setMenu('MAIN'))

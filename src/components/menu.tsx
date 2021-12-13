@@ -6,12 +6,11 @@ import MainMenu from './mainMenu';
 import AddPubForm from './addPubForm';
 import AddRouteForm from './addRouteForm';
 import Button from './button';
-import { pubsSelector, menuSelector } from '../state/store';
+import { menuSelector } from '../state/store';
 
 const Menu = ({ map }: { map: Map | null }) => {
   const [viewMenu, setViewMenu] = useState<boolean>(false);
 
-  const { addingPub } = useSelector(pubsSelector);
   const menu = useSelector(menuSelector);
 
   return (
@@ -26,7 +25,7 @@ const Menu = ({ map }: { map: Map | null }) => {
         >
           {menu === 'MAIN' && <MainMenu map={map} />}
           {menu === 'PUB' && <AddPubForm />}
-          {menu === 'ROUTE' && <AddRouteForm />}
+          {menu === 'ROUTE' && <AddRouteForm map={map} />}
         </div>
       )}
     </div>
