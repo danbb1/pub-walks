@@ -15,12 +15,13 @@ exports.handler = async ({ body, httpMethod }) => {
   }
   const url = 'mongodb://127.0.0.1:27017/pubs';
 
-  const { name, description, markers } = JSON.parse(body);
+  const { name, description, markers, distance } = JSON.parse(body);
 
   const newRoute = new Route({
     name,
     description,
     likes: 0,
+    distance,
     markers: markers.map(coord => ({
       lat: coord[0],
       long: coord[1],

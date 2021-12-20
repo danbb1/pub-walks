@@ -1,6 +1,6 @@
 /* eslint-disable no-underscore-dangle */
 import React, { useState } from 'react';
-import { LeafletMouseEvent, Map } from 'leaflet';
+import { LatLngTuple, LeafletMouseEvent, Map } from 'leaflet';
 import { MapContainer, Polyline, Rectangle, TileLayer, useMapEvent, Tooltip } from 'react-leaflet';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -13,6 +13,7 @@ import Layout from '../components/layout';
 import Seo from '../components/seo';
 import Menu from '../components/menu';
 import { HighestPointMarker, PubMarker, NewPubMarker } from '../components/mapMarkers';
+import { calcNewRouteBounds } from '../utils/handleRoute';
 
 const Drop = ({ handleClick }: { handleClick: (event: LeafletMouseEvent) => void }) => {
   useMapEvent('click', e => {
@@ -27,15 +28,16 @@ const IndexPage = () => {
   const { searchArea, pubs, newPubMarker } = useSelector(pubsSelector);
   const [map, setMap] = useState<Map | null>(null);
 
-  const menu = useSelector(menuSelector);
+  const { menu } = useSelector(menuSelector);
 
   const dispatch = useDispatch();
 
   const handleClick = (event: LeafletMouseEvent) => {
     if (menu === 'PUB') {
       dispatch(setNewPubMarker([event.latlng.lat, event.latlng.lng]));
-    } else {
+    } else if (menu === 'ROUTE') {
       dispatch(addMarker([event.latlng.lat, event.latlng.lng]));
+
       const newSearchArea = searchArea
         ? [[...searchArea[0]], [...searchArea[1]]]
         : [
@@ -43,21 +45,34 @@ const IndexPage = () => {
             [null, null],
           ];
 
-      let [[n, w], [s, e]] = newSearchArea;
+      const [[n, w], [s, e]] = newSearchArea;
 
-      const distanceTolerance = 0.005;
-      if (!w || event.latlng.lng + distanceTolerance > w) w = event.latlng.lng + distanceTolerance;
-      if (!e || event.latlng.lng - distanceTolerance < e) e = event.latlng.lng - distanceTolerance;
-      if (!n || event.latlng.lat + distanceTolerance > n) n = event.latlng.lat + distanceTolerance;
-      if (!s || event.latlng.lat - distanceTolerance < s) s = event.latlng.lat - distanceTolerance;
+      const newRouteBounds = calcNewRouteBounds({ n, w, s, e }, [event.latlng.lat, event.latlng.lng]);
 
       dispatch(
         setSearchArea([
-          [n, w],
-          [s, e],
+          [newRouteBounds.n!, newRouteBounds.w!],
+          [newRouteBounds.s!, newRouteBounds.e!],
         ]),
       );
     }
+  };
+
+  const calcCrossSVGPositions = (coord: LatLngTuple): LatLngTuple[][] => {
+    const size = 0.0005;
+
+    const [lat, long] = coord;
+
+    return [
+      [
+        [lat - size, long - size],
+        [lat + size, long + size],
+      ],
+      [
+        [lat + size, long - size],
+        [lat - size, long + size],
+      ],
+    ];
   };
 
   return (
@@ -92,7 +107,18 @@ const IndexPage = () => {
             <Tooltip>TEST</Tooltip>
           </NewPubMarker>
         )}
-        {markers && <Polyline positions={markers} />}
+        {markers && markers.length > 0 && (
+          <>
+            {/* Route line */}
+            <Polyline positions={markers} />
+            {/* Start marker */}
+            <Polyline pathOptions={{ color: 'lime' }} positions={calcCrossSVGPositions(markers[0])} />
+            {/* End Marker */}
+            {markers.length > 1 && (
+              <Polyline pathOptions={{ color: 'red' }} positions={calcCrossSVGPositions(markers[markers.length - 1])} />
+            )}
+          </>
+        )}
         {searchArea && <Rectangle bounds={searchArea} />}
         {pubs &&
           pubs.map(pub =>

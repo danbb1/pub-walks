@@ -12,8 +12,8 @@ import InputGroup from './inputGroup';
 import { routeSelector } from '../state/store';
 import { setMenu } from '../state/slices/menuSlice';
 
-import { resetRoute, setRoute, addMarker, removeLastMarker } from '../state/slices/routeSlice';
-import { setSearchArea } from '../state/slices/pubSlice';
+import { resetRoute, setMarkers, addMarker, removeLastMarker, setRouteDistance } from '../state/slices/routeSlice';
+import { setSearchArea, resetPubs } from '../state/slices/pubSlice';
 
 import handleRoute from '../utils/handleRoute';
 
@@ -49,12 +49,16 @@ const RouteEditor = ({ map }: { map: Map | null }) => {
 
       if (result.data.features[0].geometry.type === 'LineString') {
         console.log(result);
-        const { points, centrePoint, searchArea } = handleRoute(
-          result.data.features[0].geometry.coordinates as [...LatLngTuple, number][],
-        );
-        dispatch(setRoute(points));
+        const {
+          points,
+          centrePoint,
+          searchArea,
+          routeDistance: newRouteDistance,
+        } = handleRoute(result.data.features[0].geometry.coordinates as [...LatLngTuple, number][]);
+        dispatch(setMarkers(points));
         dispatch(setSearchArea(searchArea));
         if (map && centrePoint) map.flyTo(centrePoint);
+        dispatch(setRouteDistance(newRouteDistance));
 
         return null;
       }
@@ -78,6 +82,7 @@ const RouteEditor = ({ map }: { map: Map | null }) => {
           label="Clear"
           onClick={() => {
             dispatch(resetRoute());
+            dispatch(resetPubs());
           }}
           className="mr-2"
         />
@@ -86,6 +91,7 @@ const RouteEditor = ({ map }: { map: Map | null }) => {
           label="Undo"
           onClick={() => {
             dispatch(removeLastMarker());
+            if (markers?.length === 1) dispatch(resetPubs());
           }}
         />
         <Button
@@ -105,16 +111,20 @@ const RouteEditor = ({ map }: { map: Map | null }) => {
 const AddRouteForm = ({ map }: { map: Map | null }) => {
   const [routeError, setRouteError] = useState<boolean>(false);
   const [notification, setNotification] = useState<string | null>(null);
+
   const dispatch = useDispatch();
+
   const initialValues = {
     name: '',
     description: '',
   };
+
   const schema = {
     name: Yup.string().required('Required').max(150, 'Max length 150 characters'),
     description: Yup.string().required('Required').max(10000, 'Max length 10000 characters'),
   };
-  const { markers } = useSelector(routeSelector);
+
+  const { markers, routeDistance } = useSelector(routeSelector);
 
   useEffect(() => {
     if (markers) setRouteError(false);
@@ -132,7 +142,7 @@ const AddRouteForm = ({ map }: { map: Map | null }) => {
               if (!markers) {
                 setRouteError(true);
               } else {
-                const newValues = { ...values, markers };
+                const newValues = { ...values, markers, distance: routeDistance };
                 try {
                   await axios.post('/.netlify/functions/add-route', newValues);
                   setNotification('Route added succesfully');
@@ -144,6 +154,7 @@ const AddRouteForm = ({ map }: { map: Map | null }) => {
           >
             <Form className="w-full">
               <InputGroup name="name" type="text" label="Name" placeholder="Enter a name for the route" />
+              <span>Distance: {routeDistance?.toFixed(2) || 0}km</span>
               <InputGroup
                 name="description"
                 type="text"
@@ -163,6 +174,8 @@ const AddRouteForm = ({ map }: { map: Map | null }) => {
         onClick={() => {
           setNotification(null);
           dispatch(setMenu('MAIN'));
+          dispatch(resetRoute());
+          dispatch(resetPubs());
         }}
         label="Cancel"
         className="mt-auto"

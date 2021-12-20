@@ -2,6 +2,8 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { LatLngTuple } from 'leaflet';
 import axios from 'axios';
 
+import { calcDistance } from '../../utils/handleRoute';
+
 type HighestPoint = null | [...LatLngTuple, number];
 
 export type Route = {
@@ -9,6 +11,7 @@ export type Route = {
   description: string;
   likes: number;
   comments: string[];
+  distance: number;
   markers: {
     lat: number;
     long: number;
@@ -20,12 +23,16 @@ export type IRoutesInitialState = {
   markers: null | LatLngTuple[];
   highestPoint: HighestPoint;
   recentRoutes: Route[] | null;
+  selectedRoute: Route | null;
+  routeDistance: number | 0;
 };
 
 const initialState = {
   markers: null,
   highestPoint: null,
   recentRoutes: null,
+  selectedRoute: null,
+  routeDistance: 0,
 } as IRoutesInitialState;
 
 export const getHighestPoint = createAsyncThunk('route/getHighestPoint', async (route: LatLngTuple[]) => {
@@ -48,27 +55,48 @@ export const routeSlice = createSlice({
   name: 'route',
   initialState,
   reducers: {
-    addMarker(state, action) {
+    addMarker(state, action: { payload: LatLngTuple }) {
       if (!state.markers) {
         state.markers = [action.payload];
+        state.routeDistance = 0;
       } else {
+        if (state.markers.length > 0) {
+          state.routeDistance += calcDistance(state.markers[state.markers.length - 1], action.payload);
+        }
         state.markers.push(action.payload);
       }
     },
     removeLastMarker(state) {
       if (!state.markers || state.markers.length === 0) return;
 
+      if (state.markers.length > 1) {
+        const removedDistance = calcDistance(
+          state.markers[state.markers.length - 1],
+          state.markers[state.markers.length - 2],
+        );
+
+        state.routeDistance -= removedDistance;
+      }
+
       state.markers.pop();
     },
-    setHighestPoint(state, action) {
+    setHighestPoint(state, action: { payload: HighestPoint }) {
       state.highestPoint = action.payload;
     },
-    setRoute(state, action) {
+    setMarkers(state, action) {
       state.markers = action.payload;
     },
     resetRoute(state) {
       state.markers = null;
       state.highestPoint = null;
+      state.selectedRoute = null;
+      state.routeDistance = 0;
+    },
+    setSelectedRoute(state, action: { payload: Route }) {
+      state.selectedRoute = action.payload;
+    },
+    setRouteDistance(state, action: { payload: number }) {
+      state.routeDistance = action.payload;
     },
   },
   extraReducers: builder => {
@@ -85,12 +113,20 @@ export const routeSlice = createSlice({
 
       state.highestPoint = newHighestPoint;
     });
-    builder.addCase(getRecentRoutes.fulfilled, (state, action) => {
+    builder.addCase(getRecentRoutes.fulfilled, (state, action: { payload: Route[] }) => {
       state.recentRoutes = action.payload;
     });
   },
 });
 
-export const { addMarker, setHighestPoint, setRoute, removeLastMarker, resetRoute } = routeSlice.actions;
+export const {
+  addMarker,
+  setHighestPoint,
+  setMarkers,
+  setSelectedRoute,
+  removeLastMarker,
+  resetRoute,
+  setRouteDistance,
+} = routeSlice.actions;
 
 export default routeSlice.reducer;

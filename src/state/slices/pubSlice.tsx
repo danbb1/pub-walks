@@ -44,19 +44,19 @@ export const pubsSlice = createSlice({
   name: 'pubs',
   initialState,
   reducers: {
-    setSearchArea(state, action) {
+    setSearchArea(state, action: { payload: LatLngTuple[] }) {
       state.searchArea = action.payload;
     },
     resetPubs(state) {
       state.searchArea = null;
       state.pubs = null;
     },
-    setNewPubMarker(state, action) {
+    setNewPubMarker(state, action: { payload: LatLngTuple }) {
       state.newPubMarker = action.payload;
     },
   },
   extraReducers: builder => {
-    builder.addCase(getPubs.fulfilled, (state, action) => {
+    builder.addCase(getPubs.fulfilled, (state, action: { payload: Pub[] | null }) => {
       state.pubs = action.payload;
     });
   },

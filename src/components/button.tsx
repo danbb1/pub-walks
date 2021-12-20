@@ -13,7 +13,7 @@ const Button = ({
   className?: string;
 }) => (
   <button
-    className={`${className} py-2 px-8 rounded-md bg-gray-300 hover:bg-white hover:text-black text-center transition duration-500 ease-in-out`}
+    className={`${className} py-1 px-4 rounded-md bg-gray-300 hover:bg-white hover:text-black text-center transition duration-500 ease-in-out`}
     type={submit ? 'submit' : 'button'}
     onClick={onClick}
   >
