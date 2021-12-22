@@ -6,11 +6,18 @@ import { calcDistance } from '../../utils/handleRoute';
 
 export type HighestPoint = null | [...LatLngTuple, number];
 
-export type Filters = 'RECENT' | 'MOST_LIKED' | 'REGION:NORTH_WEST';
+export type Filters =
+  | 'RECENT'
+  | 'MOST_LIKED'
+  | 'REGION:NORTH_WEST'
+  | 'REGION:YORKSHIRE_AND_HUMBER'
+  | 'REGION:SOUTH_WEST_ENGLAND';
 
 export type Route = {
   name: string;
   description: string;
+  highestPoint: HighestPoint | null;
+  region: string;
   likes: number;
   comments: string[];
   distance: number;
@@ -23,7 +30,6 @@ export type Route = {
 
 export type IRoutesInitialState = {
   markers: null | LatLngTuple[];
-  highestPoint: HighestPoint;
   filteredRoutes: Route[] | null;
   filter: Filters;
   selectedRoute: Route | null;
@@ -32,27 +38,11 @@ export type IRoutesInitialState = {
 
 const initialState = {
   markers: null,
-  highestPoint: null,
   filteredRoutes: null,
   filter: 'RECENT',
   selectedRoute: null,
   routeDistance: 0,
 } as IRoutesInitialState;
-
-export const getHighestPoint = createAsyncThunk('route/getHighestPoint', async (route: LatLngTuple[]) => {
-  const locations = route
-    .map((location, index) => (index % 2 === 0 ? { latitude: location[0], longitude: location[1] } : null))
-    .filter(location => location);
-  const response = await axios.post(
-    'https://api.open-elevation.com/api/v1/lookup',
-    {
-      locations,
-    },
-    { headers: { Accept: 'application/json', 'Content-Type': 'application/json' } },
-  );
-
-  return response.data;
-});
 
 export const setFilteredRoutes = createAsyncThunk('route/setFilteredRoutes', async (filter: Filters) => {
   let query;
@@ -67,6 +57,15 @@ export const setFilteredRoutes = createAsyncThunk('route/setFilteredRoutes', asy
       break;
     case 'MOST_LIKED':
       query = { sort: 'MOST_LIKED' };
+      break;
+    case 'REGION:NORTH_WEST':
+      query = { region: 'North West England' };
+      break;
+    case 'REGION:YORKSHIRE_AND_HUMBER':
+      query = { region: 'Yorkshire and the Humber' };
+      break;
+    case 'REGION:SOUTH_WEST_ENGLAND':
+      query = { region: 'South West England' };
       break;
     default:
       query = null;
@@ -116,15 +115,11 @@ export const routeSlice = createSlice({
 
       state.markers.pop();
     },
-    setHighestPoint(state, action: { payload: HighestPoint }) {
-      state.highestPoint = action.payload;
-    },
     setMarkers(state, action) {
       state.markers = action.payload;
     },
     resetRoute(state) {
       state.markers = null;
-      state.highestPoint = null;
       state.selectedRoute = null;
       state.routeDistance = 0;
     },
@@ -139,19 +134,6 @@ export const routeSlice = createSlice({
     },
   },
   extraReducers: builder => {
-    builder.addCase(getHighestPoint.fulfilled, (state, action) => {
-      let newHighestPoint: HighestPoint = null;
-      let highestElevation = 0;
-
-      action.payload.results.forEach((coord: { latitude: number; longitude: number; elevation: number }) => {
-        if (highestElevation < coord.elevation) {
-          highestElevation = coord.elevation;
-          newHighestPoint = [...Object.values(coord)] as HighestPoint;
-        }
-      });
-
-      state.highestPoint = newHighestPoint;
-    });
     builder.addCase(setFilteredRoutes.fulfilled, (state, action: { payload: Route[] }) => {
       state.filteredRoutes = action.payload;
     });
@@ -161,15 +143,7 @@ export const routeSlice = createSlice({
   },
 });
 
-export const {
-  addMarker,
-  setHighestPoint,
-  setFilter,
-  setMarkers,
-  setSelectedRoute,
-  removeLastMarker,
-  resetRoute,
-  setRouteDistance,
-} = routeSlice.actions;
+export const { addMarker, setFilter, setMarkers, setSelectedRoute, removeLastMarker, resetRoute, setRouteDistance } =
+  routeSlice.actions;
 
 export default routeSlice.reducer;

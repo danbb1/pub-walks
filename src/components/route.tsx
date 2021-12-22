@@ -1,7 +1,7 @@
 /* eslint-disable no-underscore-dangle */
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { getHighestPoint, likeRoute } from '../state/slices/routeSlice';
+import { likeRoute } from '../state/slices/routeSlice';
 import { getPubs } from '../state/slices/pubSlice';
 import { setMenu } from '../state/slices/menuSlice';
 
@@ -9,15 +9,11 @@ import Button from './button';
 import { routeSelector } from '../state/store';
 
 const ViewRoute = () => {
-  const { markers, selectedRoute } = useSelector(routeSelector);
+  const { selectedRoute } = useSelector(routeSelector);
 
   const dispatch = useDispatch();
 
   if (!selectedRoute) return <p>Whoops...something went wrong</p>;
-
-  useEffect(() => {
-    if (markers) dispatch(getHighestPoint(markers));
-  }, []);
 
   console.log(selectedRoute);
 
@@ -25,6 +21,7 @@ const ViewRoute = () => {
     <aside className="w-full">
       <h3 className="font-bold txt-lg">{selectedRoute.name}</h3>
       <span>{selectedRoute.distance.toFixed(2)}km</span>
+      <p>{selectedRoute.region}</p>
       <p>{selectedRoute.description}</p>
       <div className="flex justify-between">
         <p>{selectedRoute.likes} likes</p>

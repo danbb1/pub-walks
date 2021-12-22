@@ -43,10 +43,18 @@ const MainMenu = ({ map }: { map: Map | null }) => {
     MOST_LIKED: 'Most Popular Routes',
     RECENT: 'Recently Added Routes',
     'REGION:NORTH_WEST': 'Region: North West',
+    'REGION:YORKSHIRE_AND_HUMBER': 'Region: Yorkshire and the Humber',
+    'REGION:SOUTH_WEST_ENGLAND': 'Region: South West England',
   };
 
   const handleCycleFilter = (direction: 'PREVIOUS' | 'NEXT') => {
-    const filters: Filters[] = ['RECENT', 'MOST_LIKED', 'REGION:NORTH_WEST'];
+    const filters: Filters[] = [
+      'RECENT',
+      'MOST_LIKED',
+      'REGION:NORTH_WEST',
+      'REGION:YORKSHIRE_AND_HUMBER',
+      'REGION:SOUTH_WEST_ENGLAND',
+    ];
 
     let newFilter: Filters;
 

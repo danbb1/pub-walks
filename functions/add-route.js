@@ -19,11 +19,16 @@ exports.handler = async ({ body, httpMethod }) => {
   const { name, description, markers, distance, highestPoint } = JSON.parse(body);
 
   try {
+    const region = await axios.get(
+      `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${markers[0][0]}&lon=${markers[0][1]}&zoom=8`,
+    );
+
     const newRoute = new Route({
       name,
       description,
       likes: 0,
       highestPoint,
+      region: region.data.address.state_district,
       distance,
       markers: markers.map(coord => ({
         lat: coord[0],
