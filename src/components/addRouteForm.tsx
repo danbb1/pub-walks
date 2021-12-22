@@ -16,6 +16,7 @@ import { resetRoute, setMarkers, addMarker, removeLastMarker, setRouteDistance }
 import { setSearchArea, resetPubs } from '../state/slices/pubSlice';
 
 import handleRoute from '../utils/handleRoute';
+import getHighestPoint from '../utils/getHighestPoint';
 
 class DBError {
   constructor(public status: number, public message: string) {}
@@ -101,7 +102,7 @@ const RouteEditor = ({ map }: { map: Map | null }) => {
         />
       </div>
       <form onSubmit={handleUpload} className="flex">
-        <input className="mb-2 w-60" type="file" name="file" onChange={handleChange} />
+        <input className="mb-2 w-full" type="file" name="file" onChange={handleChange} />
         <Button submit label="Upload" />
       </form>
     </>
@@ -142,8 +143,10 @@ const AddRouteForm = ({ map }: { map: Map | null }) => {
               if (!markers) {
                 setRouteError(true);
               } else {
-                const newValues = { ...values, markers, distance: routeDistance };
                 try {
+                  const highestPoint = await getHighestPoint(markers);
+
+                  const newValues = { ...values, markers, distance: routeDistance, highestPoint };
                   await axios.post('/.netlify/functions/add-route', newValues);
                   setNotification('Route added succesfully');
                 } catch (err) {

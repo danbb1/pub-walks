@@ -12,6 +12,8 @@ const routeSchema = new mongoose.Schema(
     description: String,
     likes: Number,
     distance: Number,
+    highestPoint: [Number],
+    region: String,
     comments: [String],
     markers: [
       {

@@ -3,20 +3,32 @@ const mongoose = require('mongoose');
 
 const Route = require('./models/Route');
 
-exports.handler = async ({ httpMethod }) => {
+exports.handler = async ({ body, httpMethod }) => {
   if (httpMethod !== 'POST') {
     return { statusCode: 405 };
   }
 
+  if (!body) {
+    return {
+      statusCode: 400,
+    };
+  }
+
   const url = 'mongodb://127.0.0.1:27017/pubs';
+
+  const query = JSON.parse(body);
 
   try {
     await mongoose.connect(url);
     console.log('successfully connected');
 
-    const response = await Route.find({
-      createdAt: { $gte: new Date() - 2592000000 },
-    });
+    let response;
+
+    if (query.sort === 'MOST_LIKED') {
+      response = await Route.find().sort({ likes: -1 });
+    } else {
+      response = await Route.find(query).sort({ createdAt: -1 });
+    }
 
     mongoose.disconnect();
 

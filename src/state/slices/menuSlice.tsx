@@ -2,14 +2,20 @@ import { createSlice } from '@reduxjs/toolkit';
 
 const initialState: IMenuState = {
   menu: 'MAIN',
-  heading: 'Routes',
+  history: [],
 };
 
-type Menus = 'MAIN' | 'ROUTE' | 'PUB';
+export enum Headings {
+  'MAIN' = 'Routes',
+  'ADD_ROUTE' = 'Add Route',
+  'PUB' = 'Add Pub',
+}
+
+type Menus = 'MAIN' | 'ADD_ROUTE' | 'PUB' | 'VIEW_ROUTE';
 
 export type IMenuState = {
   menu: Menus;
-  heading: 'Routes' | 'Add Route' | 'Add Pub';
+  history: Menus[];
 };
 
 export const menuSlice = createSlice({
@@ -17,24 +23,17 @@ export const menuSlice = createSlice({
   initialState,
   reducers: {
     setMenu(state, action: { payload: Menus }) {
+      state.history.push(state.menu);
       state.menu = action.payload;
-      switch (action.payload) {
-        case 'MAIN':
-          state.heading = 'Routes';
-          break;
-        case 'ROUTE':
-          state.heading = 'Add Route';
-          break;
-        case 'PUB':
-          state.heading = 'Add Pub';
-          break;
-        default:
-          break;
-      }
+    },
+    goBack(state) {
+      if (state.history.length === 0) return;
+      const last = state.history.pop();
+      state.menu = last!;
     },
   },
 });
 
-export const { setMenu } = menuSlice.actions;
+export const { setMenu, goBack } = menuSlice.actions;
 
 export default menuSlice.reducer;

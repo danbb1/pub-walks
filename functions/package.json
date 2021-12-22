@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "axios": "^0.24.0",
     "busboy": "^0.3.1",
     "gpxparser": "^3.0.8",
     "mongoose": "^6.1.0"

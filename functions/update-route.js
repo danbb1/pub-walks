@@ -1,6 +1,6 @@
+/* eslint-disable no-underscore-dangle */
 /* eslint-disable @typescript-eslint/no-var-requires */
 const mongoose = require('mongoose');
-const axios = require('axios');
 
 const Route = require('./models/Route');
 
@@ -9,37 +9,27 @@ exports.handler = async ({ body, httpMethod }) => {
     return { statusCode: 405 };
   }
 
-  if (!body) {
-    return {
-      statusCode: 404,
-    };
-  }
   const url = 'mongodb://127.0.0.1:27017/pubs';
 
-  const { name, description, markers, distance, highestPoint } = JSON.parse(body);
+  const newRoute = JSON.parse(body);
 
   try {
-    const newRoute = new Route({
-      name,
-      description,
-      likes: 0,
-      highestPoint,
-      distance,
-      markers: markers.map(coord => ({
-        lat: coord[0],
-        long: coord[1],
-      })),
-    });
     await mongoose.connect(url);
     console.log('successfully connected');
 
-    await newRoute.save();
+    const updatedRoute = await Route.findOneAndUpdate(
+      {
+        _id: newRoute._id,
+      },
+      newRoute,
+      { new: true },
+    );
 
     mongoose.disconnect();
 
     return {
       statusCode: 200,
-      body: 'Success',
+      body: JSON.stringify(updatedRoute),
     };
   } catch (err) {
     console.log(err.message);

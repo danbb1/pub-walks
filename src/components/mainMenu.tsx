@@ -3,14 +3,15 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Map } from 'leaflet';
 
 import {
-  getHighestPoint,
-  getRecentRoutes,
+  setFilteredRoutes,
   resetRoute,
   setSelectedRoute,
   setMarkers,
+  setFilter,
+  Filters,
   Route,
 } from '../state/slices/routeSlice';
-import { getPubs, resetPubs, setSearchArea } from '../state/slices/pubSlice';
+import { resetPubs, setSearchArea } from '../state/slices/pubSlice';
 
 import { routeSelector } from '../state/store';
 
@@ -21,12 +22,11 @@ import handleRoute from '../utils/handleRoute';
 const MainMenu = ({ map }: { map: Map | null }) => {
   const dispatch = useDispatch();
 
-  const { markers, recentRoutes, selectedRoute } = useSelector(routeSelector);
+  const { filteredRoutes, filter } = useSelector(routeSelector);
 
   useEffect(() => {
-    dispatch(getRecentRoutes());
-    console.log('getting routes');
-  }, []);
+    dispatch(setFilteredRoutes(filter));
+  }, [filter]);
 
   const handleRouteSelect = (route: Route) => {
     const { points, centrePoint, searchArea } = handleRoute(route.markers);
@@ -34,22 +34,43 @@ const MainMenu = ({ map }: { map: Map | null }) => {
     dispatch(setMarkers(points));
     if (map) map.flyTo(centrePoint);
     dispatch(setSearchArea(searchArea));
+    dispatch(setMenu('VIEW_ROUTE'));
+  };
+
+  const filterHeadings: {
+    [K in Filters]: string;
+  } = {
+    MOST_LIKED: 'Most Popular Routes',
+    RECENT: 'Recently Added Routes',
+    'REGION:NORTH_WEST': 'Region: North West',
+  };
+
+  const handleCycleFilter = (direction: 'PREVIOUS' | 'NEXT') => {
+    const filters: Filters[] = ['RECENT', 'MOST_LIKED', 'REGION:NORTH_WEST'];
+
+    let newFilter: Filters;
+
+    const currentIndex = filters.findIndex(val => val === filter);
+
+    if (direction === 'NEXT') {
+      newFilter = filters.length > currentIndex + 1 ? filters[currentIndex + 1] : filters[0];
+    } else {
+      newFilter = currentIndex - 1 >= 0 ? filters[currentIndex - 1] : filters[filters.length - 1];
+    }
+
+    dispatch(setFilter(newFilter));
   };
 
   return (
     <>
-      <Button
-        label="Add Route"
-        onClick={() => {
-          dispatch(setMenu('ROUTE'));
-          dispatch(resetRoute());
-          dispatch(resetPubs());
-        }}
-      />
-      <span className="block mb-2">Recently Added Routes</span>
+      <div className="flex justify-between w-full items-center mb-4">
+        <Button label="<" onClick={() => handleCycleFilter('PREVIOUS')} />
+        <h4 className="font-bold">{filterHeadings[filter]}</h4>
+        <Button label=">" onClick={() => handleCycleFilter('NEXT')} />
+      </div>
       <ul className="w-full">
-        {recentRoutes &&
-          recentRoutes.map(route => (
+        {filteredRoutes &&
+          filteredRoutes.map(route => (
             // eslint-disable-next-line no-underscore-dangle
             <li key={route._id} className="flex justify-between mb-2 w-full">
               <span>{route.name}</span>
@@ -57,27 +78,15 @@ const MainMenu = ({ map }: { map: Map | null }) => {
             </li>
           ))}
       </ul>
-      {selectedRoute && markers && (
-        <aside className="border-t-2 border-black pt-2">
-          <h3 className="font-bold txt-lg">{selectedRoute.name}</h3>
-          <span>{selectedRoute.distance.toFixed(2)}km</span>
-          <p>{selectedRoute.description}</p>
-          <Button className="mb-2 mx-auto" label="See Pubs" onClick={() => dispatch(getPubs())} />
-          <Button
-            className="mb-4"
-            label="Get Highest Point"
-            onClick={() => (markers ? dispatch(getHighestPoint(markers)) : null)}
-          />
-          <span className="mb-2 block">Missing pub? Add it!</span>
-          <Button
-            className="mb-2"
-            label="Add Pub"
-            onClick={() => {
-              dispatch(setMenu('PUB'));
-            }}
-          />
-        </aside>
-      )}
+      <Button
+        className="mb-2 mt-auto"
+        label="Add Route"
+        onClick={() => {
+          dispatch(setMenu('ADD_ROUTE'));
+          dispatch(resetRoute());
+          dispatch(resetPubs());
+        }}
+      />
     </>
   );
 };

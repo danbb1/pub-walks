@@ -4,7 +4,9 @@ import axios from 'axios';
 
 import { calcDistance } from '../../utils/handleRoute';
 
-type HighestPoint = null | [...LatLngTuple, number];
+export type HighestPoint = null | [...LatLngTuple, number];
+
+export type Filters = 'RECENT' | 'MOST_LIKED' | 'REGION:NORTH_WEST';
 
 export type Route = {
   name: string;
@@ -22,7 +24,8 @@ export type Route = {
 export type IRoutesInitialState = {
   markers: null | LatLngTuple[];
   highestPoint: HighestPoint;
-  recentRoutes: Route[] | null;
+  filteredRoutes: Route[] | null;
+  filter: Filters;
   selectedRoute: Route | null;
   routeDistance: number | 0;
 };
@@ -30,23 +33,56 @@ export type IRoutesInitialState = {
 const initialState = {
   markers: null,
   highestPoint: null,
-  recentRoutes: null,
+  filteredRoutes: null,
+  filter: 'RECENT',
   selectedRoute: null,
   routeDistance: 0,
 } as IRoutesInitialState;
 
 export const getHighestPoint = createAsyncThunk('route/getHighestPoint', async (route: LatLngTuple[]) => {
+  const locations = route
+    .map((location, index) => (index % 2 === 0 ? { latitude: location[0], longitude: location[1] } : null))
+    .filter(location => location);
   const response = await axios.post(
     'https://api.open-elevation.com/api/v1/lookup',
-    { locations: route.map(location => ({ latitude: location[0], longitude: location[1] })) },
+    {
+      locations,
+    },
     { headers: { Accept: 'application/json', 'Content-Type': 'application/json' } },
   );
 
   return response.data;
 });
 
-export const getRecentRoutes = createAsyncThunk('route/getRecentRoutes', async () => {
-  const result = await axios.post('/.netlify/functions/get-recent-routes');
+export const setFilteredRoutes = createAsyncThunk('route/setFilteredRoutes', async (filter: Filters) => {
+  let query;
+
+  console.log(filter);
+
+  switch (filter) {
+    case 'RECENT':
+      query = {
+        createdAt: { $gte: new Date().getTime() - 2592000000 },
+      };
+      break;
+    case 'MOST_LIKED':
+      query = { sort: 'MOST_LIKED' };
+      break;
+    default:
+      query = null;
+  }
+  const result = await axios.post('/.netlify/functions/get-routes', query);
+
+  return result.data;
+});
+
+export const likeRoute = createAsyncThunk('route/likeRoute', async (route: Route) => {
+  const newRoute = {
+    ...route,
+    likes: route.likes + 1,
+  };
+
+  const result = await axios.post('/.netlify/functions/update-route', newRoute);
 
   return result.data;
 });
@@ -98,6 +134,9 @@ export const routeSlice = createSlice({
     setRouteDistance(state, action: { payload: number }) {
       state.routeDistance = action.payload;
     },
+    setFilter(state, action: { payload: Filters }) {
+      state.filter = action.payload;
+    },
   },
   extraReducers: builder => {
     builder.addCase(getHighestPoint.fulfilled, (state, action) => {
@@ -113,8 +152,11 @@ export const routeSlice = createSlice({
 
       state.highestPoint = newHighestPoint;
     });
-    builder.addCase(getRecentRoutes.fulfilled, (state, action: { payload: Route[] }) => {
-      state.recentRoutes = action.payload;
+    builder.addCase(setFilteredRoutes.fulfilled, (state, action: { payload: Route[] }) => {
+      state.filteredRoutes = action.payload;
+    });
+    builder.addCase(likeRoute.fulfilled, (state, action: { payload: Route }) => {
+      state.selectedRoute = action.payload;
     });
   },
 });
@@ -122,6 +164,7 @@ export const routeSlice = createSlice({
 export const {
   addMarker,
   setHighestPoint,
+  setFilter,
   setMarkers,
   setSelectedRoute,
   removeLastMarker,

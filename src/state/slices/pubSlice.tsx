@@ -51,7 +51,7 @@ export const pubsSlice = createSlice({
       state.searchArea = null;
       state.pubs = null;
     },
-    setNewPubMarker(state, action: { payload: LatLngTuple }) {
+    setNewPubMarker(state, action: { payload: LatLngTuple | null }) {
       state.newPubMarker = action.payload;
     },
   },

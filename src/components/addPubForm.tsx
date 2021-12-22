@@ -52,7 +52,7 @@ const AddPubForm = () => {
             }
           }}
         >
-          <Form>
+          <Form className="w-full">
             <InputGroup name="name" type="text" label="Name" />
             <InputGroup name="address" type="text" label="Address" />
             <InputGroup name="postcode" type="text" label="Postcode" />
@@ -73,7 +73,7 @@ const AddPubForm = () => {
         onClick={() => {
           dispatch(setNewPubMarker(null));
           setNotification(null);
-          dispatch(setMenu('MAIN'))
+          dispatch(setMenu('MAIN'));
         }}
         label="Cancel"
         className="mt-auto"

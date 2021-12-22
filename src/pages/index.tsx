@@ -35,7 +35,7 @@ const IndexPage = () => {
   const handleClick = (event: LeafletMouseEvent) => {
     if (menu === 'PUB') {
       dispatch(setNewPubMarker([event.latlng.lat, event.latlng.lng]));
-    } else if (menu === 'ROUTE') {
+    } else if (menu === 'ADD_ROUTE') {
       dispatch(addMarker([event.latlng.lat, event.latlng.lng]));
 
       const newSearchArea = searchArea
@@ -48,6 +48,8 @@ const IndexPage = () => {
       const [[n, w], [s, e]] = newSearchArea;
 
       const newRouteBounds = calcNewRouteBounds({ n, w, s, e }, [event.latlng.lat, event.latlng.lng]);
+
+      console.log(newRouteBounds);
 
       dispatch(
         setSearchArea([
@@ -104,7 +106,7 @@ const IndexPage = () => {
         )}
         {menu === 'PUB' && newPubMarker && (
           <NewPubMarker position={newPubMarker}>
-            <Tooltip>TEST</Tooltip>
+            <Tooltip>Drag Me</Tooltip>
           </NewPubMarker>
         )}
         {markers && markers.length > 0 && (
