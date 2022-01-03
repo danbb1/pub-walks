@@ -10,13 +10,6 @@ module.exports = {
     `gatsby-plugin-image`,
     `gatsby-plugin-react-leaflet`,
     `gatsby-plugin-postcss`,
-    {
-      resolve: `gatsby-source-filesystem`,
-      options: {
-        name: `images`,
-        path: `${__dirname}/src/images`,
-      },
-    },
     `gatsby-transformer-sharp`,
     `gatsby-plugin-sharp`,
   ],
