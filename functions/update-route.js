@@ -9,7 +9,7 @@ exports.handler = async ({ body, httpMethod }) => {
     return { statusCode: 405 };
   }
 
-  const url = 'mongodb://127.0.0.1:27017/pubs';
+  const url = `${process.env.MONGO_URI}`;
 
   const newRoute = JSON.parse(body);
 

@@ -14,9 +14,9 @@ exports.handler = async ({ body, httpMethod }) => {
       statusCode: 404,
     };
   }
-  const url = 'mongodb://127.0.0.1:27017/pubs';
+  const url = `${process.env.MONGO_URI}`;
 
-  const { name, description, markers, distance, highestPoint } = JSON.parse(body);
+  const { name, description, markers, distance } = JSON.parse(body);
 
   try {
     const region = await axios.get(
@@ -27,7 +27,6 @@ exports.handler = async ({ body, httpMethod }) => {
       name,
       description,
       likes: 0,
-      highestPoint,
       region: region.data.address.state_district,
       distance,
       markers: markers.map(coord => ({

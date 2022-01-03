@@ -16,7 +16,6 @@ export type Filters =
 export type Route = {
   name: string;
   description: string;
-  highestPoint: HighestPoint | null;
   region: string;
   likes: number;
   comments: string[];
@@ -31,6 +30,8 @@ export type Route = {
 export type IRoutesInitialState = {
   markers: null | LatLngTuple[];
   filteredRoutes: Route[] | null;
+  filteredRoutesLoading: boolean;
+  likeRouteLoading: boolean;
   filter: Filters;
   selectedRoute: Route | null;
   routeDistance: number | 0;
@@ -39,15 +40,15 @@ export type IRoutesInitialState = {
 const initialState = {
   markers: null,
   filteredRoutes: null,
+  filteredRoutesLoading: false,
   filter: 'RECENT',
+  likeRouteLoading: false,
   selectedRoute: null,
   routeDistance: 0,
 } as IRoutesInitialState;
 
 export const setFilteredRoutes = createAsyncThunk('route/setFilteredRoutes', async (filter: Filters) => {
   let query;
-
-  console.log(filter);
 
   switch (filter) {
     case 'RECENT':
@@ -134,10 +135,18 @@ export const routeSlice = createSlice({
     },
   },
   extraReducers: builder => {
+    builder.addCase(setFilteredRoutes.pending, state => {
+      state.filteredRoutesLoading = true;
+    });
     builder.addCase(setFilteredRoutes.fulfilled, (state, action: { payload: Route[] }) => {
+      state.filteredRoutesLoading = false;
       state.filteredRoutes = action.payload;
     });
+    builder.addCase(likeRoute.pending, state => {
+      state.likeRouteLoading = true;
+    });
     builder.addCase(likeRoute.fulfilled, (state, action: { payload: Route }) => {
+      state.likeRouteLoading = false;
       state.selectedRoute = action.payload;
     });
   },

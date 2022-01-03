@@ -6,16 +6,16 @@ import { getPubs } from '../state/slices/pubSlice';
 import { setMenu } from '../state/slices/menuSlice';
 
 import Button from './button';
-import { routeSelector } from '../state/store';
+import { pubsSelector, routeSelector } from '../state/store';
+import Loading, { Spinner } from './loading';
 
 const ViewRoute = () => {
-  const { selectedRoute } = useSelector(routeSelector);
+  const { selectedRoute, likeRouteLoading } = useSelector(routeSelector);
+  const { pubsLoading } = useSelector(pubsSelector);
 
   const dispatch = useDispatch();
 
   if (!selectedRoute) return <p>Whoops...something went wrong</p>;
-
-  console.log(selectedRoute);
 
   return (
     <aside className="w-full">
@@ -25,9 +25,18 @@ const ViewRoute = () => {
       <p>{selectedRoute.description}</p>
       <div className="flex justify-between">
         <p>{selectedRoute.likes} likes</p>
-        <Button label="Like" onClick={() => dispatch(likeRoute(selectedRoute))} />
+        <Button
+          disabled={likeRouteLoading}
+          label={likeRouteLoading ? <Spinner /> : `Like`}
+          onClick={() => dispatch(likeRoute(selectedRoute))}
+        />
       </div>
-      <Button className="mb-2 mx-auto" label="See Pubs" onClick={() => dispatch(getPubs())} />
+      <Button
+        disabled={pubsLoading}
+        className="mb-2 mx-auto"
+        label={pubsLoading ? <Loading /> : 'See Pubs'}
+        onClick={() => dispatch(getPubs())}
+      />
       <span className="mb-2 block">Missing pub? Add it!</span>
       <Button
         className="mb-2"

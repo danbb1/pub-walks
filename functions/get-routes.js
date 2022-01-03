@@ -14,7 +14,7 @@ exports.handler = async ({ body, httpMethod }) => {
     };
   }
 
-  const url = 'mongodb://127.0.0.1:27017/pubs';
+  const url = `${process.env.MONGO_URI}`;
 
   const query = JSON.parse(body);
 

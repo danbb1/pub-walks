@@ -12,7 +12,7 @@ import { menuSelector, pubsSelector, routeSelector } from '../state/store';
 import Layout from '../components/layout';
 import Seo from '../components/seo';
 import Menu from '../components/menu';
-import { HighestPointMarker, PubMarker, NewPubMarker } from '../components/mapMarkers';
+import { PubMarker, NewPubMarker } from '../components/mapMarkers';
 import { calcNewRouteBounds } from '../utils/handleRoute';
 
 const Drop = ({ handleClick }: { handleClick: (event: LeafletMouseEvent) => void }) => {
@@ -24,7 +24,7 @@ const Drop = ({ handleClick }: { handleClick: (event: LeafletMouseEvent) => void
 };
 
 const IndexPage = () => {
-  const { markers, selectedRoute } = useSelector(routeSelector);
+  const { markers } = useSelector(routeSelector);
   const { searchArea, pubs, newPubMarker } = useSelector(pubsSelector);
   const [map, setMap] = useState<Map | null>(null);
 
@@ -97,11 +97,6 @@ const IndexPage = () => {
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        {selectedRoute && selectedRoute.highestPoint && (
-          <HighestPointMarker position={[selectedRoute.highestPoint[0], selectedRoute.highestPoint[1]]}>
-            <Tooltip>Highest Point: {Math.round(selectedRoute.highestPoint[2])}m</Tooltip>
-          </HighestPointMarker>
-        )}
         {menu === 'PUB' && newPubMarker && (
           <NewPubMarker position={newPubMarker}>
             <Tooltip>Drag Me</Tooltip>

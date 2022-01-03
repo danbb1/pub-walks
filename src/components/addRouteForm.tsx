@@ -8,6 +8,7 @@ import { LatLngTuple, Map } from 'leaflet';
 
 import Button from './button';
 import InputGroup from './inputGroup';
+import Loading, { Spinner } from './loading';
 
 import { routeSelector } from '../state/store';
 import { setMenu } from '../state/slices/menuSlice';
@@ -16,7 +17,6 @@ import { resetRoute, setMarkers, addMarker, removeLastMarker, setRouteDistance }
 import { setSearchArea, resetPubs } from '../state/slices/pubSlice';
 
 import handleRoute from '../utils/handleRoute';
-import getHighestPoint from '../utils/getHighestPoint';
 
 class DBError {
   constructor(public status: number, public message: string) {}
@@ -24,6 +24,7 @@ class DBError {
 
 const RouteEditor = ({ map }: { map: Map | null }) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const dispatch = useDispatch();
 
@@ -40,6 +41,7 @@ const RouteEditor = ({ map }: { map: Map | null }) => {
     if (!selectedFile || selectedFile.type !== 'application/gpx+xml') return alert('Must be a gpx file');
 
     try {
+      setLoading(true);
       const formData = new FormData();
       formData.append('file', selectedFile, selectedFile.name);
 
@@ -60,18 +62,19 @@ const RouteEditor = ({ map }: { map: Map | null }) => {
         dispatch(setSearchArea(searchArea));
         if (map && centrePoint) map.flyTo(centrePoint);
         dispatch(setRouteDistance(newRouteDistance));
-
+        setLoading(false);
         return null;
       }
-
+      setLoading(false);
       return null;
     } catch (err) {
+      setLoading(false);
       if (err instanceof DBError) {
         console.log(err.message);
         return null;
       }
     }
-
+    setLoading(false);
     return null;
   };
 
@@ -103,7 +106,7 @@ const RouteEditor = ({ map }: { map: Map | null }) => {
       </div>
       <form onSubmit={handleUpload} className="flex">
         <input className="mb-2 w-full" type="file" name="file" onChange={handleChange} />
-        <Button submit label="Upload" />
+        <Button submit label={loading ? <Spinner /> : 'Upload'} disabled={loading} />
       </form>
     </>
   );
@@ -112,6 +115,7 @@ const RouteEditor = ({ map }: { map: Map | null }) => {
 const AddRouteForm = ({ map }: { map: Map | null }) => {
   const [routeError, setRouteError] = useState<boolean>(false);
   const [notification, setNotification] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const dispatch = useDispatch();
 
@@ -131,6 +135,8 @@ const AddRouteForm = ({ map }: { map: Map | null }) => {
     if (markers) setRouteError(false);
   }, [markers]);
 
+  if (loading) return <Loading />;
+
   return (
     <>
       {!notification ? (
@@ -143,13 +149,14 @@ const AddRouteForm = ({ map }: { map: Map | null }) => {
               if (!markers) {
                 setRouteError(true);
               } else {
+                setLoading(true);
                 try {
-                  const highestPoint = await getHighestPoint(markers);
-
-                  const newValues = { ...values, markers, distance: routeDistance, highestPoint };
+                  const newValues = { ...values, markers, distance: routeDistance };
                   await axios.post('/.netlify/functions/add-route', newValues);
+                  setLoading(false);
                   setNotification('Route added succesfully');
                 } catch (err) {
+                  setLoading(false);
                   setNotification('Oops, something went wrong.');
                 }
               }

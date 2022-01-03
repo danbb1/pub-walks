@@ -6,6 +6,7 @@ const initialState = {
   pubs: null,
   searchArea: null,
   newPubMarker: null,
+  pubsLoading: false,
 } as IPubsInitialState;
 
 type Pub = {
@@ -22,6 +23,7 @@ type SearchArea = LatLngTuple[];
 
 export type IPubsInitialState = {
   pubs: Pub[] | null;
+  pubsLoading: boolean;
   searchArea: SearchArea | null;
   newPubMarker: LatLngTuple | null;
 };
@@ -56,7 +58,11 @@ export const pubsSlice = createSlice({
     },
   },
   extraReducers: builder => {
+    builder.addCase(getPubs.pending, state => {
+      state.pubsLoading = true;
+    });
     builder.addCase(getPubs.fulfilled, (state, action: { payload: Pub[] | null }) => {
+      state.pubsLoading = false;
       state.pubs = action.payload;
     });
   },

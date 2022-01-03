@@ -6,14 +6,17 @@ const Button = ({
   onClick,
   submit,
   className = '',
+  disabled = false,
 }: {
-  label: string;
+  label: string | Element;
   submit?: boolean;
+  disabled?: boolean;
   onClick?: MouseEventHandler<HTMLButtonElement>;
   className?: string;
 }) => (
   <button
-    className={`${className} py-1 px-4 rounded-md bg-gray-300 hover:bg-white hover:text-black text-center transition duration-500 ease-in-out`}
+    disabled={disabled}
+    className={`${className} py-1 px-4 rounded-md bg-gray-300 hover:bg-white hover:text-black text-center transition duration-500 ease-in-out disabled:cursor-not-allowed`}
     type={submit ? 'submit' : 'button'}
     onClick={onClick}
   >

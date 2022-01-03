@@ -18,11 +18,12 @@ import { routeSelector } from '../state/store';
 import Button from './button';
 import { setMenu } from '../state/slices/menuSlice';
 import handleRoute from '../utils/handleRoute';
+import Loading from './loading';
 
 const MainMenu = ({ map }: { map: Map | null }) => {
   const dispatch = useDispatch();
 
-  const { filteredRoutes, filter } = useSelector(routeSelector);
+  const { filteredRoutes, filter, filteredRoutesLoading } = useSelector(routeSelector);
 
   useEffect(() => {
     dispatch(setFilteredRoutes(filter));
@@ -77,7 +78,9 @@ const MainMenu = ({ map }: { map: Map | null }) => {
         <Button label=">" onClick={() => handleCycleFilter('NEXT')} />
       </div>
       <ul className="w-full">
-        {filteredRoutes &&
+        {filteredRoutesLoading && <Loading />}
+        {!filteredRoutesLoading &&
+          filteredRoutes &&
           filteredRoutes.map(route => (
             // eslint-disable-next-line no-underscore-dangle
             <li key={route._id} className="flex justify-between mb-2 w-full">
