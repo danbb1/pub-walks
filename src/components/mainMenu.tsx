@@ -77,13 +77,13 @@ const MainMenu = ({ map }: { map: Map | null }) => {
         <h4 className="font-bold">{filterHeadings[filter]}</h4>
         <Button label=">" onClick={() => handleCycleFilter('NEXT')} />
       </div>
-      <ul className="w-full">
+      <ul className="w-full overflow-scroll">
         {filteredRoutesLoading && <Loading />}
         {!filteredRoutesLoading &&
           filteredRoutes &&
           filteredRoutes.map(route => (
             // eslint-disable-next-line no-underscore-dangle
-            <li key={route._id} className="flex justify-between mb-2 w-full">
+            <li key={route._id} className="flex justify-between mb-4 w-full">
               <span>{route.name}</span>
               <Button label="View" onClick={() => handleRouteSelect(route)} />
             </li>
