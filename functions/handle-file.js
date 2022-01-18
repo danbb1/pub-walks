@@ -57,6 +57,7 @@ exports.handler = async event => {
 
     if (!file || !file.content) throw new Error('No file found.');
     const gpx = new GpxParser();
+
     gpx.parse(Buffer.from(file.content).toString());
 
     return {

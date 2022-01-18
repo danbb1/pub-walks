@@ -3,6 +3,8 @@ import axios from 'axios';
 
 import { HighestPoint } from '../state/slices/routeSlice';
 
+// Gets the highest point on a route. Unused for now as the public api is unreliable and often unresponsive.
+
 export default async (route: LatLngTuple[]) => {
   const locations = route
     .map((location, index) => (index % 2 === 0 ? { latitude: location[0], longitude: location[1] } : null))

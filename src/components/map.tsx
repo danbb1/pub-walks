@@ -59,6 +59,7 @@ const MapComponent = () => {
     }
   };
 
+  // Calculates positions of SVG crosses at start and end of route
   const calcCrossSVGPositions = (coord: LatLngTuple): LatLngTuple[][] => {
     const size = 0.0005;
 

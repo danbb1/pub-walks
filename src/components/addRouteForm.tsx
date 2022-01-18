@@ -18,6 +18,7 @@ import { setSearchArea, resetPubs } from '../state/slices/pubSlice';
 
 import handleRoute from '../utils/handleRoute';
 
+// For typechecking error response
 class DBError {
   constructor(public status: number, public message: string) {}
 }

@@ -19,6 +19,7 @@ exports.handler = async ({ body, httpMethod }) => {
   const { name, description, markers, distance } = JSON.parse(body);
 
   try {
+    // Calls Nominatim api with the first point on the route to get the region the route is located.
     const region = await axios.get(
       `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${markers[0][0]}&lon=${markers[0][1]}&zoom=8`,
     );

@@ -24,6 +24,7 @@ exports.handler = async ({ body, httpMethod }) => {
 
     let response;
 
+    // If querying most liked, sort descending, ele sort by latest created
     if (query.sort === 'MOST_LIKED') {
       response = await Route.find().sort({ likes: -1 });
     } else {
