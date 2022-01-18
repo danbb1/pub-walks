@@ -2,7 +2,7 @@ module.exports = {
   siteMetadata: {
     title: `Pub Walks`,
     description: `Mapping application for plotting routes and seeing pubs on route. Using Open Maps and Leaflet JS.`,
-    author: `@gatsbyjs`,
+    author: `@danbb1`,
     siteUrl: `https://nifty-nightingale-710f41.netlify.app/`,
   },
   plugins: [

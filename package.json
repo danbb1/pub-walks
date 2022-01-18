@@ -1,9 +1,9 @@
 {
-  "name": "gatsby-starter-default",
+  "name": "pub-walks",
   "private": true,
-  "description": "A simple starter to get up and developing quickly with Gatsby",
+  "description": "Mapping application for plotting routes and seeing pubs on route. Using Open Maps and Leaflet JS.",
   "version": "0.1.0",
-  "author": "Kyle Mathews <mathews.kyle@gmail.com>",
+  "author": "Dan Bridges <hello@danbridges.co.uk>",
   "dependencies": {
     "@reduxjs/toolkit": "^1.6.2",
     "@types/leaflet": "^1.7.6",
@@ -70,9 +70,9 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/gatsbyjs/gatsby-starter-default"
+    "url": "https://github.com/danbb1/pub-walks"
   },
   "bugs": {
-    "url": "https://github.com/gatsbyjs/gatsby/issues"
+    "url": "https://github.com/danbb1/pub-walks"
   }
 }
